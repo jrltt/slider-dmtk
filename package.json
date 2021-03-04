@@ -2,9 +2,15 @@
   "name": "slider-dmtk",
   "version": "1.0.0",
   "description": "Responsive carousel image gallery",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "test": "npm run test"
+    "start": "webpack serve --mode=development",
+    "build": "webpack --mode=production",
+    "test": "npm run test",
+    "lint": "eslint . --ext .ts"
   },
   "author": "jrltt",
   "license": "ISC",
@@ -12,6 +18,12 @@
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "eslint": "^7.21.0",
-    "typescript": "^4.2.2"
-  }
+    "prettier": "^2.2.1",
+    "ts-loader": "^8.0.17",
+    "typescript": "^4.2.2",
+    "webpack": "^5.24.3",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
+  },
+  "dependencies": {}
 }
