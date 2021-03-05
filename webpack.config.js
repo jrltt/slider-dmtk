@@ -1,24 +1,26 @@
-const path = require("path");
+const path = require('path');
 
 module.exports = () => {
   return {
     context: __dirname,
-    entry: "./src/main.ts",
+    entry: './src/main.js',
     output: {
-      filename: "main.js",
-      path: path.join(__dirname, "dist"),
+      filename: 'main.js',
+      libraryTarget: 'umd',
+      path: path.join(__dirname, 'dist'),
+      library: '[name]',
     },
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.js?$/,
+          loader: 'babel-loader',
           exclude: /node_modules/,
-          use: "ts-loader",
         },
       ],
     },
     resolve: {
-      extensions: [".js", ".ts", ".json"],
+      extensions: ['.js', '.json'],
     },
   };
 };
