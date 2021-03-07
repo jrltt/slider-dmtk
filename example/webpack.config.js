@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const dotenv = require('dotenv').config();
 
 module.exports = {
   entry: './app/index.js',
@@ -27,9 +28,15 @@ module.exports = {
       },
     ],
   },
-
   plugins: [
-    new HtmlWebpackPlugin({ template: './app/index.html' }),
+    new HtmlWebpackPlugin({
+      template: './app/index.html',
+    }),
+    new webpack.DefinePlugin({
+      'process.env': {
+        SECRETS: JSON.stringify(dotenv.parsed),
+      },
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new MiniCssExtractPlugin({
       // Options similar to the same options in webpackOptions.output
