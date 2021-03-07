@@ -9,10 +9,12 @@ function Slider() {
     this.active = setActive(this.wrapper);
     lazyLoading();
 
+    // Move to new method to create dinamy by props
     this.prev = document.querySelector('.actions-prev');
     this.next = document.querySelector('.actions-next');
     this.prev.addEventListener('click', prevClicked);
     this.next.addEventListener('click', nextClicked);
+
     resizeObs.observe(this.wrapper);
   };
 
@@ -41,6 +43,7 @@ function Slider() {
     this.active = document.querySelector('.cell.-active');
 
     lazyImage(this.active);
+    forceActivePosition(); // check force on wrapper scroll
   };
 
   const setActive = (slider) => {
