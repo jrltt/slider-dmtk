@@ -15,11 +15,12 @@ function Slider() {
     }
 
     this.wrapper = document.querySelector(props.elementName);
-    this.active = setDefaultActive(this.wrapper);
 
     if (this.config.dots) {
       this.dots = loadDots();
     }
+
+    this.active = this.setDefaultActive(this.wrapper);
 
     lazyLoading(this.wrapper);
 
@@ -55,7 +56,7 @@ function Slider() {
     }
 
     this.active = document.querySelector('.cell.-active');
-
+    this.setActiveDot();
     lazyImage(this.active);
     forceActivePosition(); // check force on wrapper scroll
   };
@@ -111,7 +112,7 @@ function Slider() {
     const cells = Array.from(elements);
     dots.forEach((dot, index) => {
       dot.addEventListener('click', (event) => {
-        activeDot(event.target, dots);
+        this.activeDot(event.target);
         setActive(cells[index]);
       });
     });
@@ -122,13 +123,18 @@ function Slider() {
 
 export { Slider };
 
-const setDefaultActive = (slider) => {
+Slider.prototype.setDefaultActive = function (slider) {
   let active = document.querySelector('.cell.-active');
 
   if (!active) {
     const firstElem = slider.firstElementChild;
     firstElem.classList.add('-active');
     active = firstElem;
+
+    if (this.config.dots) {
+      const [firstDot] = this.dots;
+      firstDot.classList.add('-active');
+    }
   }
 
   return active;
@@ -160,8 +166,8 @@ function createDotContainer() {
   return container;
 }
 
-function activeDot(current, dots) {
-  dots.forEach((dot) => {
+Slider.prototype.activeDot = function (current) {
+  this.dots.forEach((dot) => {
     if (dot !== current) {
       dot.classList.remove('-active');
     } else {
@@ -170,7 +176,12 @@ function activeDot(current, dots) {
       }
     }
   });
-}
+};
+
+Slider.prototype.setActiveDot = function () {
+  const index = Array.prototype.indexOf.call(this.wrapper.children, this.active);
+  this.activeDot(this.dots[index]);
+};
 
 function isEmpty(value) {
   return Object.keys(value).length === 0;
