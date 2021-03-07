@@ -12,7 +12,7 @@ data.then((results) => {
 
   sliderElm.append(...images);
 
-  slider.init({ elementName: '.slider' });
+  slider.init({ elementName: '.slider', dots: true });
 });
 
 async function fetchImages() {

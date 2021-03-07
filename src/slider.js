@@ -1,13 +1,27 @@
 function Slider() {
   this.wrapper;
+  this.dots;
+  this.config = {
+    elementName: '.slider-dmtk',
+    dots: true,
+  };
   this.prev;
   this.next;
   this.active;
 
   const init = (props) => {
+    if (!isEmpty(props)) {
+      this.config = { ...this.config, ...props };
+    }
+
     this.wrapper = document.querySelector(props.elementName);
-    this.active = setActive(this.wrapper);
-    lazyLoading();
+    this.active = setDefaultActive(this.wrapper);
+
+    if (this.config.dots) {
+      this.dots = loadDots();
+    }
+
+    lazyLoading(this.wrapper);
 
     // Move to new method to create dinamy by props
     this.prev = document.querySelector('.actions-prev');
@@ -46,24 +60,25 @@ function Slider() {
     forceActivePosition(); // check force on wrapper scroll
   };
 
-  const setActive = (slider) => {
-    let active = document.querySelector('.cell.-active');
+  const setActive = (element) => {
+    this.active.classList.remove('-active');
+    element.classList.add('-active');
+    this.active = element;
 
-    if (!active) {
-      const firstElem = slider.firstElementChild;
-      firstElem.classList.add('-active');
-      active = firstElem;
-    }
-
-    return active;
+    lazyImage(this.active);
+    forceActivePosition();
   };
 
   const forceActivePosition = () => {
+    if (!this.active) {
+      return;
+    }
+
     const { offsetLeft, clientWidth } = this.active;
     const activeDistance = offsetLeft + clientWidth;
     const wrapperSize = this.wrapper.clientWidth;
 
-    if (this.active && (activeDistance < wrapperSize || offsetLeft)) {
+    if (activeDistance < wrapperSize || offsetLeft) {
       this.wrapper.scrollLeft = offsetLeft;
     }
   };
@@ -72,21 +87,6 @@ function Slider() {
     // TODO: review entries[0].contentRect.width to detect resizing
     forceActivePosition();
   });
-
-  const lazyLoading = () => {
-    const images = Array.from(this.wrapper.querySelectorAll('img[data-lazy]'));
-
-    images.forEach((image) => {
-      image.addEventListener('load', removeLazyAttr, { once: true });
-      image.onload = () => {
-        image.classList.add('loaded');
-      };
-    });
-  };
-
-  const removeLazyAttr = (event) => {
-    event.target.removeAttribute('data-lazy');
-  };
 
   const lazyImage = (active) => {
     const img = active.querySelector('img');
@@ -97,7 +97,81 @@ function Slider() {
     }
   };
 
+  const loadDots = () => {
+    const dots = Array.from({ length: this.wrapper.childElementCount }).map(createDot);
+    bindClick(dots, this.wrapper.children);
+    const container = createDotContainer();
+    container.append(...dots);
+    this.wrapper.parentElement.insertBefore(container, this.wrapper.nextElementSibling);
+
+    return dots;
+  };
+
+  const bindClick = (dots, elements) => {
+    const cells = Array.from(elements);
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', (event) => {
+        activeDot(event.target, dots);
+        setActive(cells[index]);
+      });
+    });
+  };
+
   return { init };
 }
 
 export { Slider };
+
+const setDefaultActive = (slider) => {
+  let active = document.querySelector('.cell.-active');
+
+  if (!active) {
+    const firstElem = slider.firstElementChild;
+    firstElem.classList.add('-active');
+    active = firstElem;
+  }
+
+  return active;
+};
+
+function lazyLoading(slider) {
+  const images = Array.from(slider.querySelectorAll('img[data-lazy]'));
+
+  images.forEach((image) => {
+    image.addEventListener('load', removeLazyAttr, { once: true });
+    image.onload = () => {
+      image.classList.add('loaded');
+    };
+  });
+}
+
+function removeLazyAttr(event) {
+  event.target.removeAttribute('data-lazy');
+}
+
+function createDot() {
+  return document.createElement('li');
+}
+
+function createDotContainer() {
+  const container = document.createElement('ul');
+  container.classList.add('slider--dots');
+
+  return container;
+}
+
+function activeDot(current, dots) {
+  dots.forEach((dot) => {
+    if (dot !== current) {
+      dot.classList.remove('-active');
+    } else {
+      if (!current.classList.contains('-active')) {
+        current.classList.add('-active');
+      }
+    }
+  });
+}
+
+function isEmpty(value) {
+  return Object.keys(value).length === 0;
+}
