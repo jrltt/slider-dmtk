@@ -6,7 +6,7 @@ function Slider() {
 
   const init = (props) => {
     this.wrapper = document.querySelector(props.elementName);
-    this.active = document.querySelector('.cell.-active');
+    this.active = setActive(this.wrapper);
     this.prev = document.querySelector('.actions-prev');
     this.next = document.querySelector('.actions-next');
     this.prev.addEventListener('click', prevClicked);
@@ -16,24 +16,39 @@ function Slider() {
 
   const prevClicked = () => {
     this.wrapper.scrollLeft -= this.active.clientWidth;
-    updateActive('prev');
+
+    updateActive('previousElementSibling');
   };
 
   const nextClicked = () => {
     this.wrapper.scrollLeft += this.active.clientWidth;
-    updateActive('next');
+
+    updateActive('nextElementSibling');
   };
 
   const updateActive = (direction) => {
-    const directionSibling = direction === 'next' ? 'nextElementSibling' : 'previousElementSibling';
     const currentActive = this.active;
-    const siblingElement = currentActive[directionSibling];
+    const siblingElement = currentActive[direction];
+
     if (siblingElement) {
       // could be disabled by rendering
       currentActive.classList.remove('-active');
       siblingElement.classList.add('-active');
     }
+
     this.active = document.querySelector('.cell.-active');
+  };
+
+  const setActive = (slider) => {
+    let active = document.querySelector('.cell.-active');
+
+    if (!active) {
+      const firstElem = slider.firstElementChild;
+      firstElem.classList.add('-active');
+      active = firstElem;
+    }
+
+    return active;
   };
 
   const forceActivePosition = () => {
