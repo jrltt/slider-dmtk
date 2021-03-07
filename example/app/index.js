@@ -1,6 +1,6 @@
+import 'slider-dmtk/dist/slider-dmtk.css';
 import './index.scss';
-// TODO replace for package from node_modules
-import { Slider } from './../../dist/main';
+import { Slider } from 'slider-dmtk';
 import { createApi } from 'unsplash-js';
 
 const sliderElm = document.querySelector('.slider');
@@ -12,7 +12,7 @@ data.then((results) => {
 
   sliderElm.append(...images);
 
-  slider.init({ elementName: '.slider', dots: true });
+  slider.init({ elementName: '.slider', dots: true, arrowActions: true });
 });
 
 async function fetchImages() {
