@@ -9,67 +9,29 @@ function Slider() {
   this.prev;
   this.next;
   this.active;
-
-  const init = (props) => {
-    if (!isEmpty(props)) {
-      this.config = { ...this.config, ...props };
-    }
-
-    this.wrapper = document.querySelector(props?.elementName || this.config.elementName);
-
-    if (this.config.dots) {
-      this.dots = loadDots();
-    }
-
-    if (this.config.arrowActions) {
-      this.createArrowActions();
-    }
-
-    this.active = this.setDefaultActive(this.wrapper);
-
-    lazyLoading(this.wrapper);
-
-    resizeObs.observe(this.wrapper);
-  };
-
-  const setActive = (element) => {
-    this.active.classList.remove('-active');
-    element.classList.add('-active');
-    this.active = element;
-
-    this.lazyImage(this.active);
-    this.forceActivePosition();
-  };
-
-  const resizeObs = new ResizeObserver((entries) => {
-    // TODO: review entries[0].contentRect.width to detect resizing
-    this.forceActivePosition();
-  });
-
-  const loadDots = () => {
-    const dots = Array.from({ length: this.wrapper.childElementCount }).map(createDot);
-    bindClick(dots, this.wrapper.children);
-    const container = createDotContainer();
-    container.append(...dots);
-    this.wrapper.parentElement.insertBefore(container, this.wrapper.nextElementSibling);
-
-    return dots;
-  };
-
-  const bindClick = (dots, elements) => {
-    const cells = Array.from(elements);
-    dots.forEach((dot, index) => {
-      dot.addEventListener('click', (event) => {
-        this.activeDot(event.target);
-        setActive(cells[index]);
-      });
-    });
-  };
-
-  return { init };
 }
 
-export { Slider };
+Slider.prototype.init = function (props) {
+  if (!isEmpty(props)) {
+    this.config = { ...this.config, ...props };
+  }
+
+  this.wrapper = document.querySelector(props?.elementName || this.config.elementName);
+
+  if (this.config.dots) {
+    this.dots = this.loadDots();
+  }
+
+  if (this.config.arrowActions) {
+    this.createArrowActions();
+  }
+
+  this.active = this.setDefaultActive(this.wrapper);
+
+  this.lazyLoading(this.wrapper);
+
+  this.resizeObs().observe(this.wrapper);
+};
 
 Slider.prototype.setDefaultActive = function (slider) {
   let active = document.querySelector('.cell.-active');
@@ -86,6 +48,15 @@ Slider.prototype.setDefaultActive = function (slider) {
   }
 
   return active;
+};
+
+Slider.prototype.setActive = function (element) {
+  this.active.classList.remove('-active');
+  element.classList.add('-active');
+  this.active = element;
+
+  this.lazyImage(this.active);
+  this.forceActivePosition();
 };
 
 Slider.prototype.createArrowActions = function () {
@@ -112,7 +83,6 @@ Slider.prototype.prevClicked = function () {
 };
 
 Slider.prototype.nextClicked = function () {
-  console.log('this.wrapper', this.wrapper);
   this.wrapper.scrollLeft += this.active.clientWidth;
 
   this.updateActive('nextElementSibling');
@@ -149,7 +119,14 @@ Slider.prototype.forceActivePosition = function () {
   }
 };
 
-function lazyLoading(slider) {
+Slider.prototype.resizeObs = function () {
+  return new ResizeObserver((entries) => {
+    // TODO: review entries[0].contentRect.width to detect resizing
+    this.forceActivePosition();
+  });
+};
+
+Slider.prototype.lazyLoading = function (slider) {
   const images = Array.from(slider.querySelectorAll('img[data-lazy]'));
 
   images.forEach((image) => {
@@ -158,7 +135,7 @@ function lazyLoading(slider) {
       image.classList.add('loaded');
     };
   });
-}
+};
 
 Slider.prototype.lazyImage = function (active) {
   const img = active.querySelector('img');
@@ -173,16 +150,36 @@ function removeLazyAttr(event) {
   event.target.removeAttribute('data-lazy');
 }
 
-function createDot() {
-  return document.createElement('li');
-}
+Slider.prototype.loadDots = function () {
+  const dots = Array.from({ length: this.wrapper.childElementCount }).map(this.createDot);
+  this.bindDotsClick(dots);
+  const container = this.createDotContainer();
+  container.append(...dots);
+  this.wrapper.parentElement.insertBefore(container, this.wrapper.nextElementSibling);
 
-function createDotContainer() {
+  return dots;
+};
+
+Slider.prototype.bindDotsClick = function (dots) {
+  const cells = Array.from(this.wrapper.children);
+  dots.forEach((dot, index) => {
+    dot.addEventListener('click', (event) => {
+      this.activeDot(event.target);
+      this.setActive(cells[index]);
+    });
+  });
+};
+
+Slider.prototype.createDot = function () {
+  return document.createElement('li');
+};
+
+Slider.prototype.createDotContainer = function () {
   const container = document.createElement('ul');
   container.classList.add('slider--dots');
 
   return container;
-}
+};
 
 Slider.prototype.activeDot = function (current) {
   this.dots.forEach((dot) => {
@@ -211,3 +208,5 @@ function giveMeAnElement(type, classes) {
 
   return element;
 }
+
+export { Slider };
