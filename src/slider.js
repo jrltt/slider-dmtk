@@ -7,6 +7,8 @@ function Slider() {
   const init = (props) => {
     this.wrapper = document.querySelector(props.elementName);
     this.active = setActive(this.wrapper);
+    lazyLoading();
+
     this.prev = document.querySelector('.actions-prev');
     this.next = document.querySelector('.actions-next');
     this.prev.addEventListener('click', prevClicked);
@@ -37,6 +39,8 @@ function Slider() {
     }
 
     this.active = document.querySelector('.cell.-active');
+
+    lazyImage(this.active);
   };
 
   const setActive = (slider) => {
@@ -65,6 +69,30 @@ function Slider() {
     // TODO: review entries[0].contentRect.width to detect resizing
     forceActivePosition();
   });
+
+  const lazyLoading = () => {
+    const images = Array.from(this.wrapper.querySelectorAll('img[data-lazy]'));
+
+    images.forEach((image) => {
+      image.addEventListener('load', removeLazyAttr, { once: true });
+      image.onload = () => {
+        image.classList.add('loaded');
+      };
+    });
+  };
+
+  const removeLazyAttr = (event) => {
+    event.target.removeAttribute('data-lazy');
+  };
+
+  const lazyImage = (active) => {
+    const img = active.querySelector('img');
+    const lazy = img.getAttribute('data-lazy');
+
+    if (lazy) {
+      img.src = lazy;
+    }
+  };
 
   return { init };
 }
