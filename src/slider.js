@@ -94,12 +94,12 @@ Slider.prototype.updateActive = function (direction) {
   const currentActive = this.active;
   const siblingElement = currentActive[direction];
 
+  // TODO Disabled arrow at beginning and at the end
   if (siblingElement) {
     // could be disabled by rendering
     currentActive.classList.remove('-active');
     siblingElement.classList.add('-active');
   }
-
   this.active = document.querySelector('.cell.-active');
 
   this.setActiveDot();
@@ -116,8 +116,13 @@ Slider.prototype.forceActivePosition = function () {
   const activeDistance = offsetLeft + clientWidth;
   const wrapperSize = this.wrapper.clientWidth;
 
-  if (activeDistance < wrapperSize || offsetLeft) {
+  if (offsetLeft === 0) {
     this.wrapper.scrollLeft = offsetLeft;
+  } else {
+    // TODO: Review position when last item is selected
+    if (activeDistance < wrapperSize || offsetLeft) {
+      this.wrapper.scrollLeft = offsetLeft;
+    }
   }
 };
 
@@ -153,9 +158,9 @@ function removeLazyAttr(event) {
 }
 
 Slider.prototype.loadDots = function () {
-  const dots = Array.from({ length: this.wrapper.childElementCount }).map(this.createDot);
+  const dots = Array.from({ length: this.wrapper.childElementCount }).map(() => giveMeAnElement('li', ['slider--dot']));
   this.bindDotsClick(dots);
-  const container = this.createDotContainer();
+  const container = giveMeAnElement('ul', ['slider--dots']);
   container.append(...dots);
   this.wrapper.parentElement.insertBefore(container, this.wrapper.nextElementSibling);
 
@@ -170,17 +175,6 @@ Slider.prototype.bindDotsClick = function (dots) {
       this.setActive(cells[index]);
     });
   });
-};
-
-Slider.prototype.createDot = function () {
-  return document.createElement('li');
-};
-
-Slider.prototype.createDotContainer = function () {
-  const container = document.createElement('ul');
-  container.classList.add('slider--dots');
-
-  return container;
 };
 
 Slider.prototype.activeDot = function (current) {
