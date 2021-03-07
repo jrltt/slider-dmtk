@@ -2,6 +2,7 @@ function Slider() {
   this.wrapper;
   this.dots;
   this.config = {
+    arrowActions: true,
     elementName: '.slider-dmtk',
     dots: true,
   };
@@ -14,51 +15,21 @@ function Slider() {
       this.config = { ...this.config, ...props };
     }
 
-    this.wrapper = document.querySelector(props.elementName);
+    this.wrapper = document.querySelector(props?.elementName || this.config.elementName);
 
     if (this.config.dots) {
       this.dots = loadDots();
+    }
+
+    if (this.config.arrowActions) {
+      this.createArrowActions();
     }
 
     this.active = this.setDefaultActive(this.wrapper);
 
     lazyLoading(this.wrapper);
 
-    // Move to new method to create dinamy by props
-    this.prev = document.querySelector('.actions-prev');
-    this.next = document.querySelector('.actions-next');
-    this.prev.addEventListener('click', prevClicked);
-    this.next.addEventListener('click', nextClicked);
-
     resizeObs.observe(this.wrapper);
-  };
-
-  const prevClicked = () => {
-    this.wrapper.scrollLeft -= this.active.clientWidth;
-
-    updateActive('previousElementSibling');
-  };
-
-  const nextClicked = () => {
-    this.wrapper.scrollLeft += this.active.clientWidth;
-
-    updateActive('nextElementSibling');
-  };
-
-  const updateActive = (direction) => {
-    const currentActive = this.active;
-    const siblingElement = currentActive[direction];
-
-    if (siblingElement) {
-      // could be disabled by rendering
-      currentActive.classList.remove('-active');
-      siblingElement.classList.add('-active');
-    }
-
-    this.active = document.querySelector('.cell.-active');
-    this.setActiveDot();
-    lazyImage(this.active);
-    forceActivePosition(); // check force on wrapper scroll
   };
 
   const setActive = (element) => {
@@ -66,37 +37,14 @@ function Slider() {
     element.classList.add('-active');
     this.active = element;
 
-    lazyImage(this.active);
-    forceActivePosition();
-  };
-
-  const forceActivePosition = () => {
-    if (!this.active) {
-      return;
-    }
-
-    const { offsetLeft, clientWidth } = this.active;
-    const activeDistance = offsetLeft + clientWidth;
-    const wrapperSize = this.wrapper.clientWidth;
-
-    if (activeDistance < wrapperSize || offsetLeft) {
-      this.wrapper.scrollLeft = offsetLeft;
-    }
+    this.lazyImage(this.active);
+    this.forceActivePosition();
   };
 
   const resizeObs = new ResizeObserver((entries) => {
     // TODO: review entries[0].contentRect.width to detect resizing
-    forceActivePosition();
+    this.forceActivePosition();
   });
-
-  const lazyImage = (active) => {
-    const img = active.querySelector('img');
-    const lazy = img.getAttribute('data-lazy');
-
-    if (lazy) {
-      img.src = lazy;
-    }
-  };
 
   const loadDots = () => {
     const dots = Array.from({ length: this.wrapper.childElementCount }).map(createDot);
@@ -140,6 +88,67 @@ Slider.prototype.setDefaultActive = function (slider) {
   return active;
 };
 
+Slider.prototype.createArrowActions = function () {
+  const prev = giveMeAnElement('div', ['actions', 'actions-prev']);
+  prev.innerText = '<';
+  const next = giveMeAnElement('div', ['actions', 'actions-next']);
+  next.innerText = '>';
+
+  prev.addEventListener('click', () => {
+    this.prevClicked();
+  });
+  next.addEventListener('click', () => {
+    this.nextClicked();
+  });
+
+  this.wrapper.parentElement.insertBefore(prev, this.wrapper);
+  this.wrapper.parentElement.insertBefore(next, this.wrapper);
+};
+
+Slider.prototype.prevClicked = function () {
+  this.wrapper.scrollLeft -= this.active.clientWidth;
+
+  this.updateActive('previousElementSibling');
+};
+
+Slider.prototype.nextClicked = function () {
+  console.log('this.wrapper', this.wrapper);
+  this.wrapper.scrollLeft += this.active.clientWidth;
+
+  this.updateActive('nextElementSibling');
+};
+
+Slider.prototype.updateActive = function (direction) {
+  const currentActive = this.active;
+  const siblingElement = currentActive[direction];
+
+  if (siblingElement) {
+    // could be disabled by rendering
+    currentActive.classList.remove('-active');
+    siblingElement.classList.add('-active');
+  }
+
+  this.active = document.querySelector('.cell.-active');
+
+  this.setActiveDot();
+  this.lazyImage(this.active);
+  this.forceActivePosition(); // check force on wrapper scroll
+};
+
+Slider.prototype.forceActivePosition = function () {
+  if (!this.active) {
+    return;
+  }
+
+  const { offsetLeft, clientWidth } = this.active;
+  const activeDistance = offsetLeft + clientWidth;
+  const wrapperSize = this.wrapper.clientWidth;
+
+  if (activeDistance < wrapperSize || offsetLeft) {
+    this.wrapper.scrollLeft = offsetLeft;
+  }
+};
+
 function lazyLoading(slider) {
   const images = Array.from(slider.querySelectorAll('img[data-lazy]'));
 
@@ -150,6 +159,15 @@ function lazyLoading(slider) {
     };
   });
 }
+
+Slider.prototype.lazyImage = function (active) {
+  const img = active.querySelector('img');
+  const lazy = img.getAttribute('data-lazy');
+
+  if (lazy) {
+    img.src = lazy;
+  }
+};
 
 function removeLazyAttr(event) {
   event.target.removeAttribute('data-lazy');
@@ -185,4 +203,11 @@ Slider.prototype.setActiveDot = function () {
 
 function isEmpty(value) {
   return Object.keys(value).length === 0;
+}
+
+function giveMeAnElement(type, classes) {
+  const element = document.createElement(type);
+  element.classList.add(...classes);
+
+  return element;
 }
