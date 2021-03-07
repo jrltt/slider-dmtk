@@ -1,4 +1,7 @@
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+const env = process.env.NODE_ENV;
 
 module.exports = () => {
   return {
@@ -17,8 +20,18 @@ module.exports = () => {
           loader: 'babel-loader',
           exclude: /node_modules/,
         },
+        {
+          test: /\.(sa|sc|c)ss$/,
+          use: [env == 'development' ? 'style-loader' : MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        },
       ],
     },
+    plugins: [
+      new MiniCssExtractPlugin({
+        filename: 'slider-dmtk.css',
+        chunkFilename: '[id].css',
+      }),
+    ],
     resolve: {
       extensions: ['.js', '.json'],
     },

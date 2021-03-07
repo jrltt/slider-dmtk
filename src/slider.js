@@ -1,3 +1,5 @@
+import './scss/slider-dmtk.scss';
+
 function Slider() {
   this.wrapper;
   this.dots;
